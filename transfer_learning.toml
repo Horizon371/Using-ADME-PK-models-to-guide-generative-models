@@ -1,0 +1,19 @@
+
+run_type = "transfer_learning"
+use_cuda = true  # run on the GPU if true, on the CPU if false
+tb_logdir = "outputs/transfer_learning_25/tb_TL"  # name of the TensorBoard logging directory
+json_out_config = "outputs/transfer_learning_25/json_transfer_learning.json"  # write this TOML to JSON
+
+
+[parameters]
+
+num_epochs = 25  # number of steps to run
+save_every_n_epochs = 5  # save checkpoint model file very N steps
+batch_size = 50
+sample_batch_size = 100  # number of sampled molecules to compute sample loss
+
+# Reinvent
+input_model_file = "/home/jovyan/cristian/scripts/ReinventAndromedaProject/prior/no_drd2_v2.model"
+smiles_file = "/home/jovyan/cristian/smiles/train_set.smi"
+output_model_file = "/home/jovyan/cristian/scripts/ReinventAndromedaProject/prior/no_drd2_25_TL.model"
+validation_smiles_file = "/home/jovyan/cristian/smiles/validation_set.smi"  

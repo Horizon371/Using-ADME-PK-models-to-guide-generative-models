@@ -1,0 +1,53 @@
+run_type = "staged_learning"
+use_cuda = true  # run on the GPU if true, on the CPU if false
+tb_logdir = "outputs/default/tb_logs"  # name of the TensorBoard logging directory
+json_out_config = "outputs/default/_staged_learning.json"  # write this TOML to JSON
+
+[parameters]
+
+summary_csv_prefix = "outputs/default/staged_learning"  # prefix for the CSV file
+use_checkpoint = false  # if true read diversity filter from agent_file
+purge_memories = false  # if true purge all diversity filter memories after each stage
+
+## Reinvent
+prior_file = "/home/jovyan/cristian/scripts/ReinventAndromedaProject/prior/no_drd2_25_TL.model.20.chkpt"
+agent_file = "/home/jovyan/cristian/scripts/ReinventAndromedaProject/prior/no_drd2_25_TL.model.20.chkpt"
+
+batch_size = 550          # network
+
+unique_sequences = false  # if true remove all duplicates raw sequences in each step
+                         # only here for backward compatibility
+
+[learning_strategy]
+
+type = "dap"      # dap: only one supported
+sigma = 128       # sigma of the RL reward function
+rate = 0.0001     # for torch.optim
+
+[diversity_filter]  # optional, comment section out or remove if unneeded
+                    # NOTE: also memorizes all seen SMILES
+
+type = "ScaffoldSimilarity" # IdenticalTopologicalScaffold,
+                                 # ScaffoldSimilarity, IdenticalMurkoScaffold
+bucket_size = 25                 # memory size in number of compounds
+minscore = 0.4                   # only memorize if this threshold is exceeded
+minsimilarity = 0.4             # minimum similarity for ScaffoldSimilarity
+
+# Reinvent only: guide RL in the initial phase
+[inception] 
+
+memory_size = 100  # number of total SMILES held in memory
+sample_size = 10  # number of SMILES randomly chosen each epoch
+
+### Stage 1
+[[stage]]
+
+chkpt_file = 'outputs/default/andromeda_reinvent.chkpt'  # name of the checkpoint file, can be reused as agent
+
+termination = "simple"  # termination criterion fot this stage
+max_score = 0.95  # terminate if this total score is exceeded
+min_steps = 10  # run for at least this number of steps
+max_steps = 100  # terminate entire run when exceeded
+
+[stage.scoring]
+type = "geometric_mean"  # aggregation function

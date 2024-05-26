@@ -1,0 +1,65 @@
+run_type = "staged_learning"
+use_cuda = true  # run on the GPU if true, on the CPU if false
+tb_logdir = "outputs/single/tb_logs"  # name of the TensorBoard logging directory
+json_out_config = "outputs/single/_staged_learning.json"  # write this TOML to JSON
+
+[parameters]
+
+summary_csv_prefix = "outputs/single/staged_learning"  # prefix for the CSV file
+use_checkpoint = false  # if true read diversity filter from agent_file
+purge_memories = false  # if true purge all diversity filter memories after each stage
+
+## Reinvent
+prior_file = "/home/jovyan/cristian/REINVENT4/priors/reinvent.prior"
+agent_file = "/home/jovyan/cristian/REINVENT4/priors/reinvent.prior"
+
+batch_size = 64          # network
+
+unique_sequences = true  # if true remove all duplicates raw sequences in each step
+                         # only here for backward compatibility
+randomize_smiles = true  # if true shuffle atoms in SMILES randomly
+
+
+[learning_strategy]
+
+type = "dap"      # dap: only one supported
+sigma = 128       # sigma of the RL reward function
+rate = 0.0001     # for torch.optim
+
+# Reinvent only: guide RL in the initial phase
+[inception] 
+
+memory_size = 100  # number of total SMILES held in memory
+sample_size = 50  # number of SMILES randomly chosen each epoch
+
+### Stage 1
+[[stage]]
+
+chkpt_file = 'outputs/single/andromeda_reinvent.chkpt'  # name of the checkpoint file, can be reused as agent
+
+termination = "simple"  # termination criterion fot this stage
+max_score = 1  # terminate if this total score is exceeded
+min_steps = 25  # run for at least this number of steps
+max_steps = 600  # terminate entire run when exceeded
+
+[stage.scoring]
+type = "geometric_mean"  # aggregation function 
+
+
+[[stage.scoring.component]]
+[stage.scoring.component.QED]
+[[stage.scoring.component.QED.endpoint]]
+weight = 0.5  # user chosen name for output
+name = "QED Score"  # weight to fine-tune the relevance of this component
+
+[[scoring.component]]
+[scoring.component.MolecularWeight]
+[[scoring.component.MolecularWeight.endpoint]]
+name = "Molecular weight"
+weight = 0.5
+transform.type = "double_sigmoid"
+transform.high = 500.0
+transform.low = 200.0
+transform.coef_div = 500.0
+transform.coef_si = 20.0
+transform.coef_se = 20.0
